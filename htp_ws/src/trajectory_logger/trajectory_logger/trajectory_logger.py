@@ -17,7 +17,7 @@ class TrajectoryLogger(Node):
 
         # Construct full path to CSV file
         home_dir = os.path.expanduser("~")
-        csv_dir = os.path.join(home_dir, 'htp_ws', 'src', 'trajectory_data')
+        csv_dir = os.path.join(home_dir, 'human-trajectory-prediction', 'htp_ws', 'src', 'trajectory_data')
         os.makedirs(csv_dir, exist_ok=True)  # Ensure directory exists
         csv_filepath = os.path.join(csv_dir, f"{filename_param}.csv")
         
