@@ -38,7 +38,7 @@ class TrajectoryLogger(Node):
         # Open a CSV file for logging
         self.csv_file = open(csv_filepath, mode='w', newline='')
         self.csv_writer = csv.writer(self.csv_file)
-        self.csv_writer.writerow(['id_prefix', 'id', 'x', 'y', 'x_dot', 'y_dot', 'orientation', 'timestamp'])  # Write CSV header
+        self.csv_writer.writerow(['id_prefix', 'id', 'x', 'y', 'velocity_scalar', 'orientation', 'timestamp'])  # Write CSV header
 
         self.get_logger().info('Trajectory Logger Node started.')
 
@@ -54,8 +54,7 @@ class TrajectoryLogger(Node):
                 # Extract position, velocity, and orientation
                 x = marker.pose.position.x
                 y = marker.pose.position.y
-                x_dot = marker.scale.x
-                y_dot = marker.scale.y
+                vel = marker.scale.x
 
                 # Orientation quaternion
                 q_x = marker.pose.orientation.x
@@ -74,9 +73,9 @@ class TrajectoryLogger(Node):
                 timestamp += str(marker.header.stamp.nanosec)
 
                 # Write the parsed data to the CSV file
-                self.csv_writer.writerow([object_id[0], object_id[1] + object_id[2], x, y, x_dot, y_dot, yaw_degrees, timestamp])
+                self.csv_writer.writerow([object_id[0], object_id[1] + object_id[2], x, y, vel, yaw_degrees, timestamp])
 
-                self.get_logger().info(f"Logged: id_prefix={object_id[0]}, id={object_id[1] + object_id[2]}, x={x}, y={y}, orientation={yaw_degrees}, timestamp={timestamp}")
+                self.get_logger().info(f"Logged: id={object_id}, x={x}, y={y}, vel={vel}, yaw={yaw_degrees}, timestamp={timestamp}")
 
             except Exception as e:
                 self.get_logger().error(f"Error processing marker with id={marker.id}: {e}")
