@@ -1,0 +1,28 @@
+# Ignore ROS2 workspace build artifacts
+htp_ws/build/
+htp_ws/install/
+htp_ws/log/
+htp_ws/src/trajectory_data/
+.colcon_test_result/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore CMake temporary files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Ignore Editor/IDE configurations and temporary files
+.vscode/
+.idea/
+*.swp
+*~
+
+# Ignore system-specific files
+.DS_Store
+Thumbs.db
