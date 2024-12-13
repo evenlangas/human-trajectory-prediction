@@ -2,14 +2,19 @@ import pandas as pd
 import numpy as np
 
 # Define bounding box coordinates for workstations (example format: [(x1, y1, x2, y2), ...])
-workstations = [
-    (10, 10, 20, 20),
-    (30, 30, 40, 40),
-    (50, 50, 60, 60),
-    (70, 70, 80, 80),
-    (90, 90, 100, 100),
-    (110, 110, 120, 120)
+workstations_com = [
+    (-3.5, 12.1),
+    (-8.64, 8.29),
+    (-8.7, 1.1),
+    (3.7, 3.0),
+    (1.94, -10.1),
+    (-0.65, -12.0)
 ]
+
+workstations = []
+
+for workstaion_com in workstations_com:
+    workstations.append((workstaion_com[0]-0.5, workstaion_com[1]-0.5,workstaion_com[0]+0.5, workstaion_com[1]+0.5))
 
 def is_in_bounding_box(x, y, bbox):
     """Check if a point is inside a bounding box."""
@@ -31,6 +36,8 @@ def process_trajectory_data(input_csv, output_csv):
     # Add a column for workstation labels
     df['workstation'] = df.apply(label_workstation, workstations=workstations, axis=1)
 
+    df = df[df['id_prefix'] == 4.0].copy()
+
     # Initialize new columns for trajectory ID, start, and goal
     df['trajectory_id'] = np.nan
     df['start'] = np.nan
@@ -40,6 +47,10 @@ def process_trajectory_data(input_csv, output_csv):
     start_station = None
 
     for i, row in df.iterrows():
+        if row['id_prefix'] != 4.0:
+            df.drop(i)
+            continue
+
         current_station = row['workstation']
 
         if start_station is None and current_station > 0:
@@ -68,8 +79,11 @@ def process_trajectory_data(input_csv, output_csv):
             # Just entered a workstation
             start_station = current_station
 
+    df = df[df['workstation'] == 0].copy()
+
     # Save the labeled data to a new CSV
     df.to_csv(output_csv, index=False)
 
 # Example usage
-process_trajectory_data('input.csv', 'output_labeled.csv')
+base_path = "data/"
+process_trajectory_data(base_path + 'test2024-12-13-1250.csv', base_path + 'output_labeled.csv')

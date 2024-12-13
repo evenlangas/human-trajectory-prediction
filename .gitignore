@@ -3,6 +3,7 @@ htp_ws/build/
 htp_ws/install/
 htp_ws/log/
 htp_ws/src/trajectory_data/
+auto_labeller/data/
 .colcon_test_result/
 
 # Ignore Python cache files
