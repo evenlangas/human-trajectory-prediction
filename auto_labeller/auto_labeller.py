@@ -3,23 +3,30 @@ import numpy as np
 
 # Define bounding box coordinates for workstations (example format: [(x1, y1, x2, y2), ...])
 workstations_com = [
-    (-3.5, 12.1),
-    (-8.64, 8.29),
-    (-8.7, 1.1),
-    (3.7, 3.0),
-    (1.94, -10.1),
-    (-0.65, -12.0)
+    (-4, 12.1),
+    (-7.5, 9.5),
+    (-8.5, 2.3),
+    (3.4, 3.0),
+    (2.1, -10.6),
+    (-0.4, -12)
 ]
 
 workstations = []
 
 for workstaion_com in workstations_com:
-    workstations.append((workstaion_com[0]-0.5, workstaion_com[1]-0.5,workstaion_com[0]+0.5, workstaion_com[1]+0.5))
+    workstations.append((workstaion_com[0]-0.05, workstaion_com[1]-0.05,workstaion_com[0]+0.05, workstaion_com[1]+0.05))
 
 def is_in_bounding_box(x, y, bbox):
     """Check if a point is inside a bounding box."""
     x1, y1, x2, y2 = bbox
     return x1 <= x <= x2 and y1 <= y <= y2
+
+# Pad nanoseconds to ensure correct timestamp format
+def pad_timestamp(timestamp):
+    """Pad nanoseconds in the timestamp to ensure 9 digits."""
+    sec = timestamp[:10]  # First 10 digits are seconds
+    nanosec = timestamp[10:].ljust(9, '0')  # Rest are nanoseconds, padded to 9 digits
+    return f"{sec}{nanosec}"
 
 # Label each row with the workstation index (0 for not in any bounding box)
 def label_workstation(row, workstations):
@@ -33,10 +40,14 @@ def process_trajectory_data(input_csv, output_csv):
     # Read the input CSV
     df = pd.read_csv(input_csv)
 
+    # Fix timestamp formatting
+    df['timestamp'] = df['timestamp'].astype(str).apply(lambda x: pad_timestamp(x))
+
     # Add a column for workstation labels
     df['workstation'] = df.apply(label_workstation, workstations=workstations, axis=1)
 
     df = df[df['id_prefix'] == 4.0].copy()
+    df = df[df['velocity_scalar'] > 0.1].copy()
 
     # Initialize new columns for trajectory ID, start, and goal
     df['trajectory_id'] = np.nan
@@ -45,10 +56,16 @@ def process_trajectory_data(input_csv, output_csv):
 
     current_trajectory_id = 0
     start_station = None
-
+    
+    indices_to_drop = []
+    
     for i, row in df.iterrows():
-        if row['id_prefix'] != 4.0:
-            df.drop(i)
+        # if row['id_prefix'] != 4.0:
+        #     df.drop(i)
+        #     continue
+        
+        if is_in_bounding_box(row['x'], row['y'], (0.5, -12, 2, -11.45)):
+            indices_to_drop.append(i)
             continue
 
         current_station = row['workstation']
@@ -79,6 +96,14 @@ def process_trajectory_data(input_csv, output_csv):
             # Just entered a workstation
             start_station = current_station
 
+
+    if len(indices_to_drop) > 0:
+        print(indices_to_drop)
+
+        print(df['x'][indices_to_drop[0]])
+
+        df = df.drop(indices_to_drop)
+
     df = df[df['workstation'] == 0].copy()
 
     # Save the labeled data to a new CSV
@@ -86,4 +111,5 @@ def process_trajectory_data(input_csv, output_csv):
 
 # Example usage
 base_path = "data/"
-process_trajectory_data(base_path + 'test2024-12-13-1250.csv', base_path + 'output_labeled.csv')
+filename = "even"
+process_trajectory_data(base_path + filename + '.csv', base_path + filename + '_labeled.csv')
